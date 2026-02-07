@@ -1,0 +1,21 @@
+# Credentials - NEVER commit
+.env
+.env.*
+*.env
+auth-profiles.json
+
+# Sensitive data
+secrets/
+credentials/
+*.pem
+*.key
+credentials.json
+token.json
+
+# Logs
+*.log
+
+# Temp
+*.tmp
+*.temp
+node_modules/

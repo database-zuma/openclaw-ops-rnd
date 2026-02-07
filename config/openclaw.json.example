@@ -1,0 +1,158 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.1.30",
+    "lastTouchedAt": "2026-02-07T12:11:09.144Z"
+  },
+  "wizard": {
+    "lastRunAt": "2026-02-07T12:06:16.429Z",
+    "lastRunVersion": "2026.1.30",
+    "lastRunCommand": "onboard",
+    "lastRunMode": "local"
+  },
+  "auth": {
+    "profiles": {
+      "anthropic:your_profile": {
+        "provider": "anthropic",
+        "mode": "token"
+      },
+      "openrouter:your_profile": {
+        "provider": "openrouter",
+        "mode": "api_key"
+      },
+      "kimi-coding:your_profile": {
+        "provider": "kimi-coding",
+        "mode": "api_key"
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "anthropic/claude-sonnet-4-5",
+        "fallbacks": [
+          "kimi-coding/k2p5",
+          "openrouter/deepseek/deepseek-chat"
+        ]
+      },
+      "models": {
+        "anthropic/claude-sonnet-4-5": {
+          "alias": "sonnet"
+        },
+        "kimi-coding/k2p5": {
+          "alias": "kimi"
+        },
+        "openrouter/deepseek/deepseek-chat": {
+          "alias": "deepseek"
+        },
+        "openrouter/google/gemini-2.5-flash-lite": {
+          "alias": "flash-lite"
+        }
+      },
+      "workspace": "/root/.openclaw/workspace",
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "model": "kimi-coding/k2p5",
+        "maxConcurrent": 8
+      },
+      "heartbeat": {
+        "every": "30m",
+        "model": "openrouter/google/gemini-2.5-flash-lite",
+        "target": "last"
+      }
+    },
+    "list": [
+      {
+        "id": "main"
+      },
+      {
+        "id": "ops",
+        "name": "ops",
+        "workspace": "/root/.openclaw/workspace-ops",
+        "agentDir": "/root/.openclaw/agents/ops/agent",
+        "model": {
+          "primary": "kimi-coding/k2p5",
+          "fallbacks": [
+            "openrouter/deepseek/deepseek-chat",
+            "anthropic/claude-sonnet-4-5"
+          ]
+        }
+      },
+      {
+        "id": "rnd",
+        "name": "rnd",
+        "workspace": "/root/.openclaw/workspace-rnd",
+        "agentDir": "/root/.openclaw/agents/rnd/agent",
+        "model": {
+          "primary": "kimi-coding/k2p5",
+          "fallbacks": [
+            "openrouter/deepseek/deepseek-chat",
+            "anthropic/claude-sonnet-4-5"
+          ]
+        }
+      }
+    ]
+  },
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto"
+  },
+  "hooks": {
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "boot-md": {
+          "enabled": true
+        },
+        "command-logger": {
+          "enabled": true
+        },
+        "session-memory": {
+          "enabled": true
+        }
+      }
+    }
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "pairing",
+      "botToken": "YOUR_TELEGRAM_BOT_TOKEN",
+      "groupPolicy": "allowlist",
+      "streamMode": "partial"
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "loopback",
+    "auth": {
+      "mode": "token",
+      "token": "YOUR_GATEWAY_TOKEN"
+    },
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    }
+  },
+  "skills": {
+    "install": {
+      "nodeManager": "npm"
+    }
+  },
+  "plugins": {
+    "entries": {
+      "telegram": {
+        "enabled": true
+      }
+    }
+  },
+  "env": {
+    "OPENROUTER_API_KEY": "YOUR_OPENROUTER_API_KEY"
+  }
+}
