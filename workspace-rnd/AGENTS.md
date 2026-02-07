@@ -42,7 +42,7 @@ Asia/Jakarta (WIB, UTC+7)
 **Aturan:**
 - Jangan pernah hardcode credentials di script
 - Jangan push `.env` ke GitHub (sudah di `.gitignore`)
-- Kalau butuh credentials baru, eskalasi ke Athena atau Wayan
+- Kalau butuh credentials baru, eskalasi ke Iris ✨ atau Wayan
 
 **Cara pakai:**
 ```bash

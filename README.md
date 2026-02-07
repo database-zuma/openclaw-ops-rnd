@@ -1,192 +1,137 @@
-# OpenClaw OPS & R&D - Zuma Indonesia
+# OpenClaw OPS & R&D
 
-Hierarchical AI agent system for **Zuma Indonesia** (footwear company). Three Greek god-themed agents handle Operations and R&D department automation via cron jobs, Notion Kanban, and Telegram.
-
-All agent communication is in **Bahasa Indonesia**.
-
-## Architecture
+> Three AI agents run Zuma Indonesia's operations while you sleep.
 
 ```
-+-----------------------------------------------------------+
-|                   VPS Hostinger KVM 2                      |
-|              2 vCPU | 8GB RAM | 100GB SSD                  |
-|                  Singapore Region                          |
-+-----------------------------------------------------------+
-|                                                            |
-|   +------------------------------------------------+      |
-|   |       Athena - Lead Coordinator                 |      |
-|   |       Claude Sonnet 4.5 (primary)               |      |
-|   |       Role: PM / Reviewer                       |      |
-|   |       Reviews, coordinates, escalates           |      |
-|   +-------------------+-------------------+--------+      |
-|                       |                   |                |
-|           +-----------v-----+  +----------v----------+    |
-|           | Atlas            |  | Apollo               |    |
-|           | OPS Worker       |  | R&D Worker           |    |
-|           | Kimi K2.5        |  | Kimi K2.5            |    |
-|           |                  |  |                      |    |
-|           | Stock & Inventory|  | Product Development  |    |
-|           | Warehouse        |  | QC & Quality         |    |
-|           | Logistics        |  | Material Sourcing    |    |
-|           +------------------+  +----------------------+    |
-|                                                            |
-+------------------------------------------------------------+
+           ✨ Iris
+          Coordinator
+        reviews everything
+        dispatches tasks
+        escalates problems
+              |
+     +--------+--------+
+     |                  |
+  🏔️ Atlas          🎯 Apollo
+  OPS Worker        R&D Worker
+  stock, warehouse  products, QC
+  logistics         materials
 ```
 
-## Model Hierarchy & Fallbacks
+## What is this?
 
-Cost-optimized multi-provider setup with automatic failover:
+Zuma Indonesia makes shoes. ~1,400 SKUs, multiple warehouses, daily stock movements.
 
-| Agent | Primary | Fallback 1 | Fallback 2 | Heartbeat |
-|-------|---------|------------|------------|-----------|
-| **Athena** (PM) | `anthropic/claude-sonnet-4-5` | `kimi-coding/k2p5` | `openrouter/deepseek/deepseek-chat` | `gemini-2.5-flash-lite` |
-| **Atlas** (OPS) | `kimi-coding/k2p5` | `openrouter/deepseek/deepseek-chat` | `anthropic/claude-sonnet-4-5` | `gemini-2.5-flash-lite` |
-| **Apollo** (R&D) | `kimi-coding/k2p5` | `openrouter/deepseek/deepseek-chat` | `anthropic/claude-sonnet-4-5` | `gemini-2.5-flash-lite` |
+Three AI agents — themed after Greek gods — handle the repetitive data work:
 
-**Cost breakdown (per 1M tokens):**
+**Iris ✨** is the coordinator. She doesn't do tasks herself. She reviews Atlas and Apollo's output, catches mistakes, and escalates to humans when something's wrong. Named after the goddess who carried messages between gods and mortals — because that's literally her job.
 
-| Model | Input | Output | Used For |
-|-------|-------|--------|----------|
-| Claude Sonnet 4.5 | $3.00 | $15.00 | Athena primary - complex reasoning, reviews |
-| Kimi K2.5 | $0.60 | $2.50 | Worker primary - data processing, tool calls |
-| DeepSeek V3.2 | $0.13 | $0.40 | Fallback - ultra cheap safety net |
-| Gemini Flash-Lite | $0.10 | $0.40 | Heartbeats only - alive pings |
+**Atlas 🏔️** is the OPS muscle. Every morning he pulls fresh data from the ERP, dumps it into Google Sheets, lets the formulas crunch, reads the results, and emails the merchandiser: *"These 47 articles have less than 3 months of stock. Here's what to order."* Named after the Titan who carried the world — because he carries all the inventory data.
 
-**Estimated monthly cost: ~$49** (vs ~$180 if all agents used Sonnet)
+**Apollo 🎯** handles R&D. Product timelines, QC reports, material sourcing status. He tracks what's late, what's over budget, and who hasn't confirmed. Named after the god of precision — because if a defect rate goes from 2% to 4%, that's a crisis, not a rounding error.
 
-## Agents
+## How much does it cost?
 
-### Athena - Lead Coordinator
+~$56/month total. $49 LLM + $7 VPS.
 
-- **Role:** Project Manager. Reviews Atlas & Apollo output. Does NOT do tasks herself.
-- **Manages:** Cron job scheduling via Notion Kanban
-- **Escalation:** Fixes errors or escalates to Wayan via Telegram
-- **Model:** Sonnet 4.5 (needs intelligence for review & coordination)
+| Model | $/1M input | $/1M output | Who uses it |
+|-------|-----------|------------|-------------|
+| Claude Sonnet 4.5 | $3.00 | $15.00 | Iris (needs intelligence for reviews) |
+| Kimi K2.5 | $0.60 | $2.50 | Atlas & Apollo (cheap, good for data tasks) |
+| DeepSeek V3.2 | $0.13 | $0.40 | Fallback (ultra-cheap safety net) |
+| Gemini Flash-Lite | $0.10 | $0.40 | Heartbeats only (alive pings) |
 
-### Atlas - OPS Worker
+If all three agents ran on Sonnet, it'd be ~$180/month. The trick: workers don't need expensive models for repetitive data moves.
 
-- **Department:** Stock & Inventory, Warehouse, Logistics
-- **Key Task:** Daily stock depth analysis -> email insights to Merchandiser
-- **Rule:** DATA MOVER only. Pulls raw data -> pastes to GSheet -> formulas calculate -> reads results -> sends report
-- **Model:** Kimi K2.5 (cheap, capable for repetitive data tasks)
+## The five rules
 
-### Apollo - R&D Worker
+1. **Agents are data movers, not calculators.** They pull raw data, paste it into Google Sheets. GSheet formulas do all the math. This is intentional — formulas are auditable, agents aren't.
 
-- **Department:** Product Development, Quality Control, Material Sourcing
-- **Key Task:** Track product timelines, QC reports, material sourcing status
-- **Rule:** Same DATA MOVER pattern as Atlas
-- **Model:** Kimi K2.5
+2. **All communication in Bahasa Indonesia.** Reports go to department PICs (Person In Charge), not to the developer. The merchandiser doesn't care about your API calls.
 
-## File Structure
+3. **Max 2 revision attempts.** If Iris asks Atlas to redo something twice and it's still wrong, she escalates to Wayan. No infinite loops.
+
+4. **No browsers.** VPS has 2 CPU cores. Headless Chrome would eat it alive. Everything is CLI: `gog` for Google Workspace, `curl` for APIs, Notion API for task tracking.
+
+5. **Sequential, not parallel.** 2 cores means one thing at a time. Atlas runs at 8:30 WIB, Apollo at 8:45. Simple.
+
+## Runs on
+
+| What | Where |
+|------|-------|
+| VPS | Hostinger KVM 2 — 2 vCPU, 8GB RAM, 100GB SSD, Singapore |
+| Platform | [OpenClaw](https://docs.openclaw.ai/) v2026.1.30 |
+| OS | Ubuntu 24.04 |
+| Task tracking | Notion Kanban |
+| Communication | Telegram (bot per agent) |
+| Data engine | Google Sheets (formulas do the math) |
+| Email | Gmail via gog CLI |
+| ERP | Accurate Online API |
+
+## File structure
 
 ```
 openclaw-ops-rnd/
-|-- README.md
-|-- .gitignore
-|-- config/
-|   |-- openclaw.json.example      # Sanitized config (no real keys)
-|   |-- .env.template              # Credential template
-|-- workspace-athena/              # Athena workspace files
-|   |-- AGENTS.md                  # Job description & rules
-|   |-- IDENTITY.md                # Name, creature, vibe, emoji
-|   |-- SOUL.md                    # Personality, principles, boundaries
-|   |-- USER.md                    # Who she serves, PIC contacts
-|   |-- MEMORY.md                  # Knowledge base & decision log
-|-- workspace-ops/                 # Atlas workspace files
-|   |-- AGENTS.md / IDENTITY.md / SOUL.md / USER.md
-|-- workspace-rnd/                 # Apollo workspace files
-    |-- AGENTS.md / IDENTITY.md / SOUL.md / USER.md
+├── README.md                          # You are here
+├── .gitignore
+├── config/
+│   └── openclaw.json.example          # Sanitized config (no real keys)
+├── workspace-iris/                    # Iris ✨ — Coordinator
+│   ├── IDENTITY.md                    # Name, creature, vibe, emoji
+│   ├── SOUL.md                        # Personality, principles
+│   ├── USER.md                        # Who she serves
+│   ├── AGENTS.md                      # Job description & rules
+│   └── MEMORY.md                      # Knowledge base
+├── workspace-ops/                     # Atlas 🏔️ — OPS Worker
+│   ├── IDENTITY.md / SOUL.md / USER.md / AGENTS.md
+└── workspace-rnd/                     # Apollo 🎯 — R&D Worker
+    ├── IDENTITY.md / SOUL.md / USER.md / AGENTS.md
 ```
 
-**On VPS** (`/root/.openclaw/`):
+On the VPS (`/root/.openclaw/`), there's also:
+- `openclaw.json` — live config with real API keys
+- `.env` — credentials (NEVER in git)
+- `agents/*/agent/auth-profiles.json` — per-agent LLM auth
 
-```
-|-- openclaw.json                  # Live config (with real keys)
-|-- .env                           # Shared credentials (NEVER in git)
-|-- .env.template                  # Credential reference
-|-- agents/
-|   |-- main/agent/                # Athena auth & sessions
-|   |-- ops/agent/                 # Atlas auth & sessions
-|   |-- rnd/agent/                 # Apollo auth & sessions
-|-- workspace/                     # Athena live workspace
-|-- workspace-ops/                 # Atlas live workspace
-|-- workspace-rnd/                 # Apollo live workspace
-```
+## Integrations
 
-## Setup
+| Tool | Purpose | Status |
+|------|---------|--------|
+| Notion | Kanban task management | ✅ Connected |
+| GitHub | Config backup | ✅ Working |
+| Telegram | Agent ↔ human communication | Bot created, routing pending |
+| Google Sheets (gog) | Data storage & formula engine | CLI installed, OAuth pending |
+| Gmail (gog) | Email reports to PICs | CLI installed, OAuth pending |
+| Accurate Online | ERP data source | Credentials pending |
 
-### Prerequisites
+## Roadmap
 
-- VPS with 4GB+ RAM (we use Hostinger KVM 2 - 8GB)
-- [OpenClaw](https://docs.openclaw.ai/) installed
-- API keys: Anthropic, Kimi (Moonshot AI), OpenRouter
+| Phase | What | Status |
+|-------|------|--------|
+| **1** | Atlas daily stock analysis → email insight to merchandiser | In Progress |
+| **2** | Apollo R&D reports + expand OPS tasks | Planned |
+| **3** | Layer 2 oversight agent on Mac Mini M4 | Future |
+| **4** | Jarvis — C-level assistant | Future |
 
-### Quick Start
+## Quick start
 
 ```bash
-# 1. Install OpenClaw
-curl -fsSL https://openclaw.ai/install.sh | bash
-openclaw onboard
+# SSH into VPS
+ssh root@76.13.194.103
 
-# 2. Add worker agents
-openclaw agents add ops
-openclaw agents add rnd
+# Talk to agents
+openclaw tui --session agent:main:main    # Iris ✨
+openclaw tui --session agent:ops:main     # Atlas 🏔️
+openclaw tui --session agent:rnd:main     # Apollo 🎯
 
-# 3. Copy workspace files from this repo
-cp workspace-athena/* /root/.openclaw/workspace/
-cp workspace-ops/* /root/.openclaw/workspace-ops/
-cp workspace-rnd/* /root/.openclaw/workspace-rnd/
-
-# 4. Configure (edit with your real API keys)
-cp config/openclaw.json.example /root/.openclaw/openclaw.json
-
-# 5. Add auth profiles
-openclaw models auth paste-token --provider anthropic
-openclaw models auth paste-token --provider openrouter
-openclaw models auth paste-token --provider kimi-coding
-
-# 6. Set up credentials
-cp config/.env.template /root/.openclaw/.env
-nano /root/.openclaw/.env   # Fill in real values
-
-# 7. Start
-openclaw gateway run
-
-# 8. Talk to agents
-openclaw tui --session agent:main:main    # Athena
-openclaw tui --session agent:ops:main     # Atlas
-openclaw tui --session agent:rnd:main     # Apollo
+# Check status
+openclaw models status
+openclaw skills list
 ```
 
 ## Security
 
-- **No secrets in this repo.** All API keys, tokens, and passwords live in `.env` files (gitignored).
-- **Auth profiles** stored in `~/.openclaw/agents/<id>/agent/auth-profiles.json` (not committed).
-- **`.gitignore`** blocks: `.env`, `auth-profiles.json`, `*.pem`, `*.key`, `credentials.json`
-
-## Tools & Integrations
-
-| Tool | Purpose | Status |
-|------|---------|--------|
-| **Notion** | Kanban task management for cron jobs | Pending |
-| **Telegram** | Agent communication & escalation | Bot created, routing pending |
-| **Google Sheets** (gog CLI) | Data storage & formula engine | Pending |
-| **Gmail** (gog CLI) | Email reports to PICs | Pending |
-| **Accurate Online API** | ERP data source (stock, sales, products) | Pending |
-
-## Phase Roadmap
-
-| Phase | Scope | Status |
-|-------|-------|--------|
-| **1** | Atlas Control Stock PoC (daily stock analysis to email) | In Progress |
-| **2** | Apollo R&D reports + more OPS tasks | Planned |
-| **3** | Layer 2 oversight on Mac Mini M4 | Future |
-| **4** | Jarvis C-level assistant | Future |
-
-## Company
-
-**Zuma Indonesia** - Indonesian footwear manufacturer. ~1,397 SKUs across multiple warehouses. ERP: Accurate Online.
+No secrets in this repo. All API keys, tokens, and passwords live in `.env` files on the VPS (gitignored). Auth profiles are stored in `~/.openclaw/agents/<id>/agent/auth-profiles.json` (not committed).
 
 ---
 
-*Built with [OpenClaw](https://docs.openclaw.ai/) v2026.1.30*
+**Zuma Indonesia** — Indonesian footwear manufacturer. Built with [OpenClaw](https://docs.openclaw.ai/).
