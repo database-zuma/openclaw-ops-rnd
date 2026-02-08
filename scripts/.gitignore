@@ -1,0 +1,16 @@
+# Credentials - NEVER commit
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+
+# Output files
+*.xlsx
+*.csv
+*.log
+xlsx auto pull/
+xlsx auto pull - inventory/
+logs/
