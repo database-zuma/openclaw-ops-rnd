@@ -342,29 +342,54 @@ This means:
 
 ---
 
-## Current Status (8 Feb 2026)
+## Current Status (8 Feb 2026 - 20:30 WIB)
 
 | Component | Status | Details |
 |-----------|--------|---------|
-| VPS Server | ✅ Running | PostgreSQL 16.11 on Hostinger KVM 2 |
+| VPS Server | ✅ Running | PostgreSQL 16.11 on Hostinger KVM 2 (76.13.194.120) |
 | Portal data (master) | ✅ Loaded | 6,782 rows across 4 tables |
-| Raw tables (structure) | ✅ Ready | 7 Accurate tables + 1 iSeller table designed, indexed, constrained |
-| Raw data (content) | ⬜ Empty | Awaiting first API pull — Python scripts being ported |
-| Core schema | ⬜ Not started | Will build after raw data is flowing reliably |
-| Mart views | ⬜ Not started | Will build after core is done |
-| Daily automation | ⬜ Not started | Will set up cron jobs after first successful test pull |
-| Backups | ✅ Running | Daily automated backups, 7-day retention |
+| **Raw stock data** | ✅ **COMPLETE** | **1,648,679 total rows** across 4 entities |
+| - accurate_stock_ddd | ✅ Done | 1,376,832 records |
+| - accurate_stock_ljbb | ✅ Done | 17,412 records |
+| - accurate_stock_mbb | ✅ Done | 202,455 records |
+| - accurate_stock_ubb | ✅ Done | 51,980 records |
+| **Raw sales data** | ⏳ **IN PROGRESS** | Historical 2022-2026 being loaded (workaround method) |
+| - accurate_sales_ddd | ⏳ 61% | ~59,000/96,768 rows inserted |
+| - accurate_sales_mbb | ⏳ 14% | ~6,000/41,925 rows inserted |
+| - accurate_sales_ubb | ⏳ Started | Just begun |
+| Daily automation (cron) | ✅ Set up | Stock 03:00, Sales 05:00 WIB — starts tomorrow |
+| Core schema | ⬜ Pending | Build after raw data complete |
+| Mart views | ⬜ Pending | Build after core is done |
+| Backups | ✅ Running | Daily at 02:00, 7-day retention |
 
 ---
 
 ## What's Next (Immediate)
 
-1. **Port Python scripts** — Adapt existing Accurate API scripts to write to our VPS PostgreSQL instead of old Supabase
-2. **Test first pull** — Pull DDD stock data as a proof of concept
-3. **Historical load** — Bulk-load 2022–2026 sales data (already downloaded, ~170K+ rows)
-4. **Set up daily cron** — Automate daily stock + sales pulls for all entities
-5. **Build core schema** — Clean, join, and enrich the raw data
-6. **Build mart views** — Create the reporting views that feed dashboards
+1. **✅ DONE** — Port Python scripts to VPS PostgreSQL
+2. **✅ DONE** — Test first stock pull (all 4 entities complete!)
+3. **⏳ IN PROGRESS** — Bulk-load 2022-2026 sales data (running on VPS, ~3 hours remaining)
+4. **✅ DONE** — Set up daily cron (Stock 03:00, Sales 05:00 WIB, backup 02:00)
+5. **⏳ NEXT** — Wait for historical sales to complete, then build core schema
+6. **⏳ NEXT** — Build mart views for Control Stock PoC
+7. **⏳ NEXT** — Set up Iris → Atlas monitoring via Telegram
+
+---
+
+## Active Processes on VPS (Running 24/7)
+
+**DB VPS (76.13.194.120):**
+- Historical sales pull: DDD, MBB, UBB (2022-2026) — ETA ~3 hours
+- Cron jobs start: Tomorrow 02:00 (backup), 03:00 (stock), 05:00 (sales)
+
+**Agent VPS (76.13.194.103):**
+- OpenClaw Gateway running
+- Iris (main agent) configured — Telegram pending connection
+- Atlas (ops agent) will monitor cron jobs once Telegram connected
+
+**Local (Wayan's PC):**
+- Currently rate-limited (Anthropic), resumes in ~1.5 hours
+- All heavy processing moved to VPS — safe to shutdown
 
 ---
 
